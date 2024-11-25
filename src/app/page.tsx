@@ -1,9 +1,9 @@
+import { Header } from "@/sections/Header";
+
 export default function Home() {
   return (
     <>
-      <div>
-        Smile to Earn
-      </div>
+    <Header />
     </>
   );
 }
