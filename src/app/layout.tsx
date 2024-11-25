@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Inter } from 'next/font/google';
+import { twMerge } from "tailwind-merge";
+import { ThemeProvider } from "@/context/Theme";
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Smile to Earn",
@@ -13,11 +18,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-      >
-        {children}
+      <body className={twMerge(inter.className, "antialiased")}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
-    </html>
+    </html >
   );
 }
