@@ -10,8 +10,8 @@ export const Header = () => {
     const { theme } = useTheme() || {};
 
     return (
-<header className={`${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>            
-    <div className={`container mx-auto py-4`}>
+        <header className={`${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
+            <div className={`container mx-auto py-4`}>
                 <div className={`mx-auto flex justify-between items-center p-2 border ${theme === 'dark' ? 'border-white' : 'border-black'} rounded-md`}>
                     <div className="flex items-center">
                         <Image
@@ -31,7 +31,7 @@ export const Header = () => {
                             <ThemeToggle />
                         </div>
                         <ul className="flex space-x-2 md:space-x-4">
-                            <Link href="#" className={`text-sm md:text-base border border-rose-500 p-2 mr-1 rounded-md tracking-tight bg-rose-500 ${theme === 'dark' ? 'text-black' : 'text-white'}`}>
+                            <Link href="#" className="text-sm text-white md:text-base border border-rose-500 p-2 mr-1 rounded-md tracking-tight bg-rose-500 hover:bg-rose-600 transition-colors duration-300">
                                 Connect Wallet
                             </Link>
                         </ul>
