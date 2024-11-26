@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.1.0",
-    "hardhat": "^2.22.16",
+    "@vladmandic/face-api": "^1.7.14",
+    "hardhat": "^0.0.7",
     "lucide-react": "^0.460.0",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
