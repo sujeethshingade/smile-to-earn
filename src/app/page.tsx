@@ -1,12 +1,16 @@
+"use client";
+
+import dynamic from 'next/dynamic';
 import { Header } from "@/sections/Header";
-import { Camera } from "@/sections/Camera";
 import { Footer } from "@/sections/Footer";
+
+const DynamicCamera = dynamic(() => import('@/sections/Camera').then(mod => mod.default), { ssr: false });
 
 export default function Home() {
   return (
     <>
       <Header />
-      <Camera />
+      <DynamicCamera />
       <Footer />
     </>
   );

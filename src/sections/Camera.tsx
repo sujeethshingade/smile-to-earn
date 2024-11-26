@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/context/Theme';
 import * as faceapi from '@vladmandic/face-api';
 
-export const Camera = () => {
+const Camera = () => {
   const { theme } = useTheme() || {};
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -212,4 +212,6 @@ export const Camera = () => {
       </div>
     </div>
   );
-}
+};
+
+export default Camera; 
