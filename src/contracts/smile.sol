@@ -1,46 +1,57 @@
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+contract SmileCredit {
+    address public owner;
+    mapping(address => uint256) public balances;
 
-contract SmileReward is Ownable, ReentrancyGuard {
-    uint256 public constant REWARD_AMOUNT = 0.01 ether;
+    event Credit(address indexed user, uint256 amount);
+    event Donation(address indexed donor, uint256 amount);
 
-    event Rewarded(address indexed user, uint256 amount);
-    event Donated(address indexed donor, uint256 amount);
-
-    receive() external payable {
-        emit Donated(msg.sender, msg.value);
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
     }
 
-    function donate() public payable {
-        require(msg.value > 0, "Must donate some ETH");
-        emit Donated(msg.sender, msg.value);
+    constructor() {
+        owner = msg.sender;
     }
 
-    function rewardSmile(address user) public nonReentrant {
+    function creditUser(address user) external onlyOwner {
+        require(user != address(0), "Invalid address");
+
+        uint256 creditAmount = 0.01 ether;
+
         require(
-            address(this).balance >= REWARD_AMOUNT,
-            "Insufficient contract balance"
+            address(this).balance >= creditAmount,
+            "Insufficient funds in contract"
         );
 
-        lastReward[user] = block.timestamp;
-        (bool success, ) = user.call{value: REWARD_AMOUNT}("");
-        require(success, "Transfer failed");
+        balances[user] += creditAmount;
 
-        emit Rewarded(user, REWARD_AMOUNT);
+        emit Credit(user, creditAmount);
     }
 
-    function getBalance() public view returns (uint256) {
+    function donate() external payable {
+        require(msg.value > 0, "Donation amount must be greater than zero");
+
+        emit Donation(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external onlyOwner {
+        require(
+            amount <= address(this).balance,
+            "Insufficient balance to withdraw"
+        );
+
+        payable(owner).transfer(amount);
+    }
+
+    function checkBalance() external view returns (uint256) {
         return address(this).balance;
     }
 
-    function withdraw() public onlyOwner {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No balance to withdraw");
-        
-        (bool success, ) = owner().call{value: balance}("");
-        require(success, "Transfer failed");
+    receive() external payable {
+        emit Donation(msg.sender, msg.value);
     }
 }
