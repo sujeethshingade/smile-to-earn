@@ -27,7 +27,7 @@ contract SmileCredit {
             "Insufficient funds in contract"
         );
 
-        balances[user] += creditAmount;
+        payable(user).transfer(creditAmount);
 
         emit Credit(user, creditAmount);
     }
