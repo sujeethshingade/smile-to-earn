@@ -23,7 +23,7 @@ const CONTRACT_ABI = [
     "function donate() external payable"
 ];
 
-const Trx = () => {
+const SmileCredit = () => {
     const { theme } = useTheme() || {};
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,7 +135,7 @@ const Trx = () => {
             }
         } catch (err: any) {
             console.error("Error:", err);
-            setError(err.message || "Failed to process. Please try again.");
+            setError("Failed to process. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -157,7 +157,7 @@ const Trx = () => {
             setSmileResult('Smiling - Reward Sent! 🎉');
         } catch (err: any) {
             console.error("Reward error:", err);
-            setError(err.message || "Failed to send reward. Please try again.");
+            setError("Insufficient funds. Please wait till more donations are made.");
         }
     };
 
@@ -252,7 +252,7 @@ const Trx = () => {
                     ) : (
                         <>
                             {error && (
-                                <div className="text-red-500 text-center mb-4 p-2 rounded bg-red-100">
+                                <div className="text-red-500 text-center mb-4 p-2 rounded bg-red-100 overflow-x-clip">
                                     {error}
                                 </div>
                             )}
@@ -360,12 +360,12 @@ const Trx = () => {
     );
 };
 
-function Camera() {
+function Main() {
     return (
         <ThirdwebProvider>
-            <Trx />
+            <SmileCredit />
         </ThirdwebProvider>
     );
 }
 
-export default Camera;
+export default Main;
