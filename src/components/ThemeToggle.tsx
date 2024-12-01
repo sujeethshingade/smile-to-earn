@@ -14,7 +14,7 @@ export const ThemeToggle: React.FC = () => {
       <div 
         onClick={toggleTheme}
         className={`
-          w-20 h-[42px] rounded-md p-[5px] cursor-pointer
+          w-16 h-[34px] rounded-full p-[5px] cursor-pointer
           transition-colors duration-300 ease-in-out
           ${isDark ? 'bg-slate-800' : 'bg-slate-200'}
           relative
@@ -22,10 +22,10 @@ export const ThemeToggle: React.FC = () => {
       >
         <div
           className={`
-            absolute w-8 h-8 rounded-md
+            absolute w-6 h-6 rounded-full
             transition-transform duration-300 ease-in-out
             flex items-center justify-center
-            ${isDark ? 'translate-x-[38px] bg-black' : 'translate-x-0 bg-white'}
+            ${isDark ? 'translate-x-[30px] bg-black' : 'translate-x-0 bg-white'}
           `}
         >
           {isDark ? (

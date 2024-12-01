@@ -1,5 +1,9 @@
 "use client";
 
+import Link from 'next/link';
+import Image from 'next/image';
+import Logo from '@/assets/logo.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/context/Theme';
 import * as faceapi from '@vladmandic/face-api';
@@ -23,10 +27,17 @@ const CONTRACT_ABI = [
     "function donate() external payable"
 ];
 
+declare global {
+    interface Window {
+        ethereum: any;
+    }
+}
+
 const SmileCredit = () => {
     const { theme } = useTheme() || {};
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [displayText, setDisplayText] = useState('Say Cheese!');
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [photo, setPhoto] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -114,7 +125,7 @@ const SmileCredit = () => {
         setError(null);
 
         try {
-            const img = new Image();
+            const img = document.createElement('img');
             img.src = photo;
             await new Promise((resolve) => img.onload = resolve);
 
@@ -128,10 +139,10 @@ const SmileCredit = () => {
             }
 
             if (detection.expressions.happy > 0.8) {
-                setSmileResult('Smiling! Processing reward...');
+                setSmileResult('Smiling 😀');
                 await rewardUser();
             } else {
-                setSmileResult('Not quite smiling - try again! 😐');
+                setSmileResult('Not Smiling 😐');
             }
         } catch (err: any) {
             console.error("Error:", err);
@@ -146,14 +157,14 @@ const SmileCredit = () => {
             setError("No wallet connected");
             return;
         }
-    
+
         try {
             const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
             const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
-    
+
             const tx = await contract.creditUser(account);
             await tx.wait();
-    
+
             setSmileResult('Smiling - Reward Sent! 🎉');
         } catch (err: any) {
             console.error("Reward error:", err);
@@ -229,131 +240,155 @@ const SmileCredit = () => {
         }
     }, [provider]);
 
+    useEffect(() => {
+        if (smileResult) {
+            setDisplayText(smileResult);
+        }
+    }, [smileResult]);
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
     return (
-        <div className={`min-h-screen py-8 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-            <div className="container mx-auto px-4">
-                <div className={`max-w-3xl mx-auto p-6 rounded-md border ${theme === 'dark' ? 'bg-black text-white border-white' : 'bg-white text-black border-black'
-                    }`}>
-                    <h2 className="text-2xl font-bold text-center tracking-tight mb-6">
-                        Say Cheese!
-                    </h2>
+        <div className={`min-h-screen py-4 ${theme === 'dark' ? 'bg-black' : 'bg-white'} flex flex-col items-center justify-center relative`}>
+            <div className="absolute top-4 right-4 hidden md:block">
+                <ThemeToggle />
+            </div>
 
-                    {!account ? (
-                        <div className="text-center">
-                            <p className="mb-4">Connect your wallet to start earning rewards for your smile!</p>
-                            <button
-                                onClick={connectWallet}
-                                disabled={isConnecting}
-                                className="px-6 py-3 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition-colors duration-300"
-                            >
-                                {isConnecting ? "Connecting..." : "Connect Wallet"}
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            {error && (
-                                <div className="text-red-500 text-center mb-4 p-2 rounded bg-red-100 overflow-x-clip">
-                                    {error}
-                                </div>
-                            )}
+            <div className="container flex flex-col items-center justify-center">
+                <div className="flex items-center mb-8">
+                    <Image
+                        src={Logo}
+                        alt="Smile Logo"
+                        width={50}
+                        height={50}
+                        className="mr-2"
+                        priority
+                    />
+                    <h1 className={`text-3xl tracking-tight font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                        <Link href="/">Smile to Earn</Link>
+                    </h1>
+                </div>
+                <div className="container mx-auto px-4">
+                    <div className={`max-w-3xl mx-auto ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
 
-                            <div className="flex flex-col items-center gap-6">
-                                {!photo && (
-                                    <div className="w-full">
-                                        <div className={`relative aspect-video rounded-md overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-                                            <video
-                                                ref={videoRef}
-                                                autoPlay
-                                                playsInline
-                                                muted
-                                                className="absolute inset-0 w-full h-full object-cover"
-                                                style={{ transform: 'scaleX(-1)' }}
+                        {!account ? (
+                            <div className="text-center flex flex-col items-center">
+                                <p className="mb-6 max-w-xs text-xl tracking-tight">Connect your wallet to collect reward for your smile!</p>
+                                <button
+                                    onClick={connectWallet}
+                                    disabled={isConnecting}
+                                    className="px-4 py-2 bg-fuchsia-600 text-white rounded-sm hover:bg-fuchsia-800 transition-colors duration-300"
+                                >
+                                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <h3 className="text-xl mb-6 max-w-sm text-center mx-auto">Help fund rewards for smiling users by donating ETH</h3>
+                                    <p className="text-center font-bold text-xl mb-4">Current Balance: {contractBalance} ETH</p>
+                                    <div className="max-w-xs mx-auto">
+                                        <form className={`flex flex-col sm:flex-row items-center`}>
+                                            <input
+                                                type="number"
+                                                value={donationAmount}
+                                                onChange={(e) => setDonationAmount(e.target.value)}
+                                                placeholder="Amount in ETH"
+                                                className={`w-full sm:flex-1 px-4 py-2 rounded-l-sm ${theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'}`}
+                                                min="0"
+                                                step="0.01"
                                             />
-                                        </div>
-                                        <button
-                                            onClick={takePhoto}
-                                            className="mt-4 w-full px-6 py-3 tracking-tight bg-rose-500 text-white rounded-md hover:bg-rose-600 transition-colors duration-300 font-medium"
-                                        >
-                                            Take Photo
-                                        </button>
-                                    </div>
-                                )}
-
-                                {photo && (
-                                    <div className="w-full tracking-tight">
-                                        <div className={`relative aspect-video rounded-md overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-                                            <img
-                                                src={photo}
-                                                alt="Captured Smile"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        {smileResult && (
-                                            <p className="text-center mt-4 text-2xl font-bold">
-                                                {smileResult}
-                                            </p>
-                                        )}
-                                        <div className="flex gap-4 mt-4">
                                             <button
-                                                onClick={() => {
-                                                    setPhoto(null);
-                                                    setError(null);
-                                                    setSmileResult('');
-                                                    startCamera();
-                                                }}
-                                                className="flex-1 px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-300 font-medium"
-                                                disabled={isLoading}
+                                                onClick={handleDonate}
+                                                disabled={isDonating || !donationAmount}
+                                                className="w-full sm:w-auto px-4 py-2 bg-fuchsia-600 text-white rounded-r-sm hover:bg-fuchsia-800 disabled:opacity-50 transition-colors duration-300"
                                             >
-                                                Retake
+                                                Donate
                                             </button>
-                                            <button
-                                                onClick={handleCheckSmile}
-                                                disabled={isLoading || !modelsLoaded}
-                                                className={`flex-1 px-6 py-3 rounded-md font-medium transition-colors duration-300 ${isLoading || !modelsLoaded ? 'bg-gray-400 cursor-not-allowed' : 'bg-rose-500 hover:bg-rose-600'} text-white`}>
-                                                {isLoading ? 'Processing...' : 'Check Smile'}
-                                            </button>
-                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div className='pb-8'>
+                                    <h2 className="pt-12 text-2xl font-bold text-center tracking-tight mb-6">
+                                        {displayText}
+                                    </h2>
+
+                                    <div className="flex flex-col items-center gap-6">
+                                        {!photo && (
+                                            <div className="w-full">
+                                                <div className={`relative aspect-video rounded-sm overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+                                                    <video
+                                                        ref={videoRef}
+                                                        autoPlay
+                                                        playsInline
+                                                        muted
+                                                        className="absolute inset-0 w-full h-full object-cover"
+                                                        style={{ transform: 'scaleX(-1)' }}
+                                                    />
+                                                </div>
+                                                <button
+                                                    onClick={takePhoto}
+                                                    className="mt-4 w-full px-4 py-2 tracking-tight bg-fuchsia-600 text-white rounded-sm hover:bg-fuchsia-800 transition-colors duration-300 font-medium"
+                                                >
+                                                    Capture Photo
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {photo && (
+                                            <div className="w-full tracking-tight">
+                                                <div className={`relative aspect-video rounded-sm overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+                                                    <img
+                                                        src={photo}
+                                                        alt="Captured Smile"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+
+                                                <div className="flex gap-4 mt-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            setPhoto(null);
+                                                            setError(null);
+                                                            setSmileResult('');
+                                                            setDisplayText('Say Cheese!');
+                                                            startCamera();
+                                                        }}
+                                                        className="flex-1 px-4 py-2 bg-slate-500 text-white rounded-sm hover:bg-slate-600 transition-colors duration-300 font-medium"
+                                                        disabled={isLoading}
+                                                    >
+                                                        Retake
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCheckSmile}
+                                                        disabled={isLoading || !modelsLoaded}
+                                                        className={`flex-1 px-4 py-2 rounded-sm font-medium transition-colors duration-300 ${isLoading || !modelsLoaded ? 'bg-fuchsia-600 cursor-not-allowed' : 'bg-fuchsia-600 hover:bg-fuchsia-800'} text-white`}>
+                                                        {isLoading ? 'Processing...' : 'Submit'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-red-100 text-red-500 text-center px-4 py-2 rounded-sm">
+                                        {error}
                                     </div>
                                 )}
-                            </div>
 
-                            <div className="mt-8 pt-8 border-t">
-                                <h3 className="text-xl font-semibold mb-4 text-center">Support the Project</h3>
-
-                                <div className="mb-6 text-center">
-                                    <p className="text-lg mb-2">Current Balance</p>
-                                    <p className="text-2xl font-bold">{contractBalance} ETH</p>
-                                </div>
-
-                                <div className="max-w-md mx-auto">
-                                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                                        <input
-                                            type="number"
-                                            value={donationAmount}
-                                            onChange={(e) => setDonationAmount(e.target.value)}
-                                            placeholder="Amount in ETH"
-                                            className="w-full sm:flex-1 px-4 py-2 border rounded-md text-black"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                        <button
-                                            onClick={handleDonate}
-                                            disabled={isDonating || !donationAmount}
-                                            className="w-full sm:w-auto px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 transition-colors duration-300"
-                                        >
-                                            {isDonating ? 'Donating...' : 'Donate'}
-                                        </button>
-                                    </div>
-
-                                    <p className="mt-4 text-sm text-center text-gray-600 dark:text-gray-400">
-                                        Help fund rewards for smiling users by donating ETH
-                                    </p>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    <canvas ref={canvasRef} className="hidden" />
+                            </>
+                        )}
+                        <canvas ref={canvasRef} className="hidden" />
+                    </div>
                 </div>
             </div>
         </div>
